@@ -8,11 +8,11 @@ export default {
 
     database_url: process.env.MONGODB_URI,
 
+    db_name: process.env.DB_NAME,
+
     bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS || 12,
 
-    jwt_secret: process.env.JWT_SECRET,
-
-    jwt_expires_in: process.env.JWT_EXPIRES_IN,
+    nextauth_secret: process.env.NEXTAUTH_SECRET,
 
     gemini_api_key: process.env.GEMINI_API_KEY,
 }

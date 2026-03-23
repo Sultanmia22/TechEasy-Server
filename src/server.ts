@@ -8,7 +8,9 @@ async function main(){
             throw new Error('Database URL is not provided in environment variables')
         }
 
-        await mongoose.connect(config.database_url);
+        await mongoose.connect(config.database_url,{
+            dbName: config.db_name || 'TechEasy',
+        });
         console.log('Connect to MongoDB Successfully');
 
         app.listen(config.port,() => {

@@ -7,5 +7,5 @@ export interface IUser {
     password: string,
     date: Date,
     image?: string,
-    role: 'admin' | 'customer' | 'seller'
+    role: 'admin' | 'customer'
 }
