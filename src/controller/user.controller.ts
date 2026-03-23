@@ -63,7 +63,7 @@ const login = async (req: Request, res: Response) => {
             });
         }
 
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             data: user,
         });

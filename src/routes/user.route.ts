@@ -5,6 +5,6 @@ import { userController } from '../controller/user.controller';
 const router = express.Router();
 
 router.post('/',userController.register);
-router.get('/',userController.login)
+router.post('/login',userController.login)
 
 export const userRoute = router
