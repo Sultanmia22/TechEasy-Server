@@ -1,6 +1,7 @@
 import { User } from "../models/user.model";
 import { Request, Response } from 'express';
 import bycrypt from 'bcrypt'
+import { create } from "domain";
 const register = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
@@ -54,6 +55,14 @@ const login = async (req: Request, res: Response) => {
             });
         }
 
+
+
+        if (!user.password) {
+            return res.status(400).json({
+                message: 'This account was created using Google. Please use Google Sign-In to continue.'
+            });
+        }
+
         const isPasswordMatched = await bycrypt.compare(password, user.password)
 
         if (!isPasswordMatched) {
@@ -77,9 +86,41 @@ const login = async (req: Request, res: Response) => {
     }
 }
 
+
+const socialLogin = async (req: Request, res: Response) => {
+    try {
+        const { name, email, image } = req.body;
+
+        let user = await User.findOne({ email })
+
+        if (!user) {
+            user = await User.create({
+                name,
+                email,
+                image,
+                role: "customer",
+                date: new Date().toISOString(),
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            data: user
+        })
+
+    }
+    catch (er: any) {
+        console.log(er.message)
+        res.status(500).json({
+            success: false, message: er.message
+        })
+    }
+}
+
 export const userController = {
     register,
-    login
+    login,
+    socialLogin
 }
 
 

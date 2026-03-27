@@ -1,6 +1,4 @@
 
-import { Date } from "mongoose";
-
 export interface IUser {
     name: string,
     email: string,
@@ -9,3 +7,4 @@ export interface IUser {
     image?: string,
     role: 'admin' | 'customer'
 }
+
