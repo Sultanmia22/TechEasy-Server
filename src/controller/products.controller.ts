@@ -39,51 +39,41 @@ const getFilters = async (req: Request, res: Response) => {
     }
 }
 
+
 const allProduct = async (req: Request, res: Response) => {
     try {
-        const { type, value } = req.query;
+        const {page = 1, limit = 8, category, brand, name, price } = req.query;
 
         let query: any = {};
+
+        if (category && typeof category === 'string') query.category = category;
+        if (brand && typeof brand === 'string') query.brand = brand;
+        if (name && typeof name === 'string' && name.trim() !== '') {
+            query.name = { $regex: name, $options: 'i' }; 
+        }
+
+        // Sort 
         let sort: any = {};
+        if (price === 'low') sort.price = 1;    
+        if (price === 'high') sort.price = -1;  
 
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 8;
-        const skip = (page - 1) * limit;
+        // Pagination
+        const skip = (Number(page) - 1) * Number(limit);
 
+        const total = await Products.countDocuments(query);
 
-        if ((type === 'category' || type === 'brand') && value !== 'all') {
-            query[type] = value;
-        }
-
-        if (type === 'search' && typeof value === 'string' && value.trim() !== '') {
-            query['name'] = { $regex: value, $options: 'i' };
-        }
-
-        if (type === 'sort') {
-            if (value === 'low') sort.price = 1;
-            if (value === 'high') sort.price = -1;
-        }
-
-        const product = await Products.find(query)
-            .sort(sort)
-            .skip(skip)
-            .limit(limit);
-
+        const products = await Products.find(query).sort(sort).skip(skip).limit(Number(limit))
 
         res.status(200).json({
             success: true,
-            message: "Filtered products fetched successfully",
-            data: product,
+            data: products,
+            total,
+            page: Number(page),
+            limit: Number(limit)
         });
 
-    }
-    catch (er: any) {
-        console.error(er);
-
-        res.status(500).json({
-            success: false,
-            message: "Something went wrong",
-        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: "Something went wrong" });
     }
 }
 
