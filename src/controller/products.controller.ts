@@ -77,9 +77,38 @@ const allProduct = async (req: Request, res: Response) => {
     }
 }
 
+const getProductById = async (req: Request, res: Response) => {
+    try{
+        const { id } = req.params;
+        const singleProduct = await Products.findById(id);
+
+        if(!singleProduct){
+            return res.status(404).json({
+                success: false,
+                message: 'Poduct Not Found',
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            data: singleProduct
+        })
+    }
+    catch(er:any){
+        console.log(er.message)
+        res.status(500).json({
+            success: false,
+            message: 'Something weent wrong'
+        })
+    }
+}
+
+
+
 
 export const productController = {
     popularProducts,
     getFilters,
-    allProduct
+    allProduct,
+    getProductById
 }
