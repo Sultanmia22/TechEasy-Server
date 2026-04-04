@@ -9,7 +9,7 @@ const cartSchema = new Schema<ICart>({
         {
             productId: {
                 type: Schema.Types.ObjectId,
-                ref: 'Products',
+                ref: 'products',
                 required: true,
             },
 

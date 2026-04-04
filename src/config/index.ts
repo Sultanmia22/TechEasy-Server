@@ -15,4 +15,6 @@ export default {
     nextauth_secret: process.env.NEXTAUTH_SECRET,
 
     gemini_api_key: process.env.GEMINI_API_KEY,
+
+    jwt_secret: process.env.JWT_SECRET
 }
