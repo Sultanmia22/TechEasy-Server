@@ -25,6 +25,7 @@ const addToCart = async (req: Request, res: Response) => {
             quantity,
           },
         ],
+        orderStatus: 'pending'
       });
     }
     else{
@@ -60,7 +61,10 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
   try {
     const { email } = req.params;
 
-    const query = {userEmail:email as string}
+    const query = {
+    userEmail: email as string,
+    orderStatus: "pending"         
+    };
 
     if (!email) {
       res.status(400).json({

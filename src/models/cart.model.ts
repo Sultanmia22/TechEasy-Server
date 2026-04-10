@@ -23,6 +23,7 @@ const cartSchema = new Schema<ICart>({
         }
     ],
 
+    orderStatus: {type: String, enum: ['pending', 'success', 'failed'],  required: true}
 },
 {
   timestamps: true

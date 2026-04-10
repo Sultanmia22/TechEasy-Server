@@ -3,6 +3,8 @@ import { userRoute } from './user.route';
 import path from 'node:path';
 import { productRoute } from './products.route';
 import { cartRoute } from './cart.route';
+import { orderRoute } from './order.route';
+
 
 const router = express.Router();
 
@@ -20,7 +22,12 @@ const moduleRoute = [
     {
         path: '/cart',
         route: cartRoute,
-    }
+    },
+
+    {
+        path: '/order',
+        route: orderRoute,
+    },
 ];
 
 moduleRoute.forEach((route) => router.use(route.path, route.route));

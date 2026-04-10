@@ -9,4 +9,5 @@ export interface IPopulatedCartItem {
 export interface ICart {
   userEmail: string;
   items: IPopulatedCartItem[];
+  orderStatus: string;
 }
