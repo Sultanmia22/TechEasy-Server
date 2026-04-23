@@ -1,0 +1,9 @@
+export interface IUser {
+    name: string;
+    email: string;
+    password: string;
+    date: Date;
+    image?: string;
+    role: 'admin' | 'customer';
+}
+//# sourceMappingURL=user.interface.d.ts.map

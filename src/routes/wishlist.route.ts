@@ -1,0 +1,7 @@
+import express from 'express'
+import { wishListController } from '../controller/wishlist.controller';
+const router = express.Router();
+
+router.post('/addwishlist',wishListController.addWishList)
+
+export const wishroute = router;

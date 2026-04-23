@@ -31,8 +31,6 @@ const cartSchema = new Schema<ICart>({
 )
 
 
-
-
 const Cart = model<ICart>('Carts',cartSchema)
 
 export default Cart
