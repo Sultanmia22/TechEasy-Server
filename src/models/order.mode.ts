@@ -19,7 +19,7 @@ const ShippingInfoSchema = new Schema<IShippingInfo>(
 // ২. Order Item Schema
 const OrderItemSchema = new Schema<IOrderItem>(
   {
-    productId: String, // আপনার ইন্টারফেসে এটি ছিল, তাই যোগ করলাম
+    productId: String, 
     name: String,
     price: Number,
     quantity: Number,
@@ -42,6 +42,11 @@ const CustomerOrderSchema = new Schema(
           type: String,
           enum: ["pending", "paid", "failed"],
           default: "pending",
+        },
+        devliveredStatus : {
+          type : String,
+          enum : ['pending', 'delivered','failed'],
+          default: 'pending'
         },
         stripeSessionId: String,
       },

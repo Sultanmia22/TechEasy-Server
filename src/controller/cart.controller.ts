@@ -89,6 +89,7 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
         })
     }
 
+    console.log(cart)
   
 
     res.status(200).json({

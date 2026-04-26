@@ -39,6 +39,7 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
         items,
         totalPrice,
         paymentStatus: "pending",
+        deliveredStatus : 'pending'
       };
 
       const updatedDoc = await CustomerOrder.findOneAndUpdate(
@@ -95,7 +96,7 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
     );
 
     res.status(200).json({ url: session.url });
-  } catch (error) {
+  } catch (error:any) {
     res.status(500).json({ message: error.message });
   }
 };
