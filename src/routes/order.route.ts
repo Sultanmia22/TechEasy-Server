@@ -4,6 +4,9 @@ import verifyToken from "../middleware/authMiddleware";
 const router = express.Router()
 
 router.post('/create-checkout-session',verifyToken,orderController.createCheckoutSession)
-router.get('/confirmOrder',orderController.confirmOrder)
+
+router.get('/confirmOrder',verifyToken,orderController.paidOrder)
+
+router.get('/getSignleOrder',orderController.getSingleOrder)
 
 export const orderRoute = router;

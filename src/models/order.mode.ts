@@ -43,10 +43,10 @@ const CustomerOrderSchema = new Schema(
           enum: ["pending", "paid", "failed"],
           default: "pending",
         },
-        devliveredStatus : {
-          type : String,
-          enum : ['pending', 'delivered','failed'],
-          default: 'pending'
+        orderStatus : {
+          type : [String],
+          enum : ['confirmed', 'paid', 'pending', 'shiped','delivered'],
+          default: ['confirmed']
         },
         stripeSessionId: String,
       },

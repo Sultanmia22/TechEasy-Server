@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
 import { CustomerOrder } from "../models/order.mode";
 import { WishList } from "../models/wishlist.model";
+import type { AuthRequest } from "../middleware/authMiddleware";
 
-const getDashboradSummyData = async (req: Request, res: Response) => {
+const getDashboradSummyData = async (req: AuthRequest, res: Response) => {
     try {
         const { customerEmail } = req.query;
 
@@ -45,7 +46,7 @@ const getDashboradSummyData = async (req: Request, res: Response) => {
                 }
             ]),
 
-            
+
             WishList.findOne({ customerEmail })
                 .populate({
                     path: 'wishListItem.productId'
@@ -94,6 +95,43 @@ const getDashboradSummyData = async (req: Request, res: Response) => {
     }
 }
 
+const getMyOrders = async (req: Request, res: Response) => {
+    try {
+        const { customerEmail } = req.query;
+
+        if (!customerEmail) {
+            res.status(400).json({
+                success: false,
+                message: 'Customer Email is required. Please provide a valid email.'
+            })
+            return;
+        }
+
+        const findorders = await CustomerOrder.findOne({ email: customerEmail })
+
+        const customerOrders = findorders?.orders;
+
+
+        if (!customerOrders || customerOrders.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'Product not found!',
+                data: []
+            })
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: customerOrders
+        })
+    }
+    catch (er: any) {
+        console.log(er)
+    }
+}
+
 export const DashboardController = {
-    getDashboradSummyData
+    getDashboradSummyData,
+    getMyOrders
 }

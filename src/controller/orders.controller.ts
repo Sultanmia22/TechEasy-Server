@@ -39,13 +39,13 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
         items,
         totalPrice,
         paymentStatus: "pending",
-        deliveredStatus : 'pending'
+        orderStatus: 'confirmed'
       };
 
       const updatedDoc = await CustomerOrder.findOneAndUpdate(
         { email: customerEmail },
         { $push: { orders: newOrderData } },
-        { upsert: true, returnDocument: 'after',setDefaultsOnInsert: true}
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       );
 
       orderToProcess = updatedDoc.orders[updatedDoc.orders.length - 1];
@@ -96,12 +96,12 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
     );
 
     res.status(200).json({ url: session.url });
-  } catch (error:any) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const confirmOrder = async (req: Request, res: Response) => {
+const paidOrder = async (req: Request, res: Response) => {
   try {
     const { orderId, email } = req.query;
 
@@ -137,7 +137,12 @@ const confirmOrder = async (req: Request, res: Response) => {
             "orders._id": orderId as string,
           },
 
-          { $set: { "orders.$.paymentStatus": "paid" } },
+          {
+            $set: { "orders.$.paymentStatus": "paid" },
+            $addToSet: {
+              "orders.$.orderStatus": "paid"
+            }
+          },
         );
 
         const productIdsString = session.metadata.productId;
@@ -147,23 +152,53 @@ const confirmOrder = async (req: Request, res: Response) => {
           await Cart.updateMany(
             {
               userEmail: email as string,
-             "items.productId": { $in: productIdsArray }
+              "items.productId": { $in: productIdsArray }
             },
-            { $set: { orderStatus: "success" } },
+            {
+              $set: { orderStatus: "success" },
+
+            },
           );
         }
       }
       orderData.paymentStatus = "paid";
     }
 
-    return res.status(200).json({data:orderData});
+    return res.status(200).json({ data: orderData });
   } catch (error: any) {
     console.error("Order Confirmation Error:", error);
     return res.status(500).json({ message: error.message });
   }
 };
 
+const getSingleOrder = async (req: Request, res: Response) => {
+  try {
+    const { customerEmail, orderId } = req.query;
+
+    if (!customerEmail || !orderId) {
+      res.status(400).json({
+        success: false,
+        message: 'Order ID and Email are required'
+      })
+      return;
+    }
+
+    const customerAllOrder = await CustomerOrder.findOne({ email: customerEmail as string })
+
+    const singleOrder = customerAllOrder?.orders.find(order => order._id.toString() === orderId)
+
+    res.status(200).json({
+      success: true,
+      data: singleOrder || {}
+    })
+  }
+  catch (er: any) {
+    console.log(er)
+  }
+};
+
 export const orderController = {
   createCheckoutSession,
-  confirmOrder,
+  paidOrder,
+  getSingleOrder
 };
