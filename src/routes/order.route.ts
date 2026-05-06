@@ -7,6 +7,6 @@ router.post('/create-checkout-session',verifyToken,orderController.createCheckou
 
 router.get('/confirmOrder',verifyToken,orderController.paidOrder)
 
-router.get('/getSignleOrder',orderController.getSingleOrder)
+router.get('/getSignleOrder',verifyToken,orderController.getSingleOrder)
 
 export const orderRoute = router;

@@ -32,12 +32,15 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const delivaryCharge = shippingInfo.district === "dhaka-city" ? 80 : 120;
+
     if (!orderToProcess) {
       const newOrderData = {
         orderDate: new Date(),
         shippingInfo,
         items,
         totalPrice,
+        deliveryCharge: delivaryCharge,
         paymentStatus: "pending",
         orderStatus: 'confirmed'
       };
@@ -51,7 +54,6 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
       orderToProcess = updatedDoc.orders[updatedDoc.orders.length - 1];
     }
 
-    const delivaryCharge = shippingInfo.district === "dhaka-city" ? 80 : 120;
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -171,7 +173,7 @@ const paidOrder = async (req: Request, res: Response) => {
   }
 };
 
-const getSingleOrder = async (req: Request, res: Response) => {
+const getSingleOrder = async (req: AuthRequest, res: Response) => {
   try {
     const { customerEmail, orderId } = req.query;
 

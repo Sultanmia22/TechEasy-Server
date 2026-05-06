@@ -38,6 +38,7 @@ const CustomerOrderSchema = new Schema(
         shippingInfo: { type: ShippingInfoSchema, required: true },
         items: { type: [OrderItemSchema], required: true },
         totalPrice: { type: Number, required: true },
+        deliveryCharge : {type: Number, required: true},
         paymentStatus: {
           type: String,
           enum: ["pending", "paid", "failed"],
