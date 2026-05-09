@@ -73,7 +73,47 @@ const getWishlist = async (req: Request, res: Response) => {
     }
 }
 
+const deleteWishlist = async (req: Request, res: Response) => {
+    try{
+        const {customerEmail, productId} = req.query;
+
+         if(!customerEmail){
+            res.status(400).json({
+                success: false,
+                message: 'Please provide Customer Email!'
+            })
+            return
+        }
+
+        const customerWishList = await WishList.findOne({customerEmail})
+
+        if(!customerEmail){
+            res.status(404).json({
+                success : false,
+                message : "Wishlist Not Found!"
+            })
+
+            return;
+        }
+
+        const result = await WishList.updateOne(
+             { customerEmail: customerEmail },
+
+             {$pull:{wishListItem:{ productId: productId }}}
+        )
+
+        res.status(200).json({
+            success : true,
+            message : 'Wishlist item deleted successfully'
+        })
+    }
+    catch(er){
+        console.log(er)
+    }
+}
+
 export const wishListController = {
   addWishList,
-  getWishlist
+  getWishlist,
+  deleteWishlist
 };

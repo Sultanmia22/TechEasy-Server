@@ -10,6 +10,7 @@ const wishlistSchema = new Schema <IWishList>({
                 ref: 'products',
                 required: true,
             },
+            _id: false 
         }
     ]
 },
