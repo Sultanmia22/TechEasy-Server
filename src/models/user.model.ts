@@ -2,35 +2,46 @@ import { model, Schema } from "mongoose";
 import { IUser } from "../types/user.interface";
 import bcrypt from 'bcrypt';
 const userSchema = new Schema<IUser>({
-    name: {type: String, required: true},
-    email: {type: String, required: true},
-    password: {type: String, required: false,select: false},
-    date: {type: Date, required: true},
-    image: {type: String, required: true},
-    role: {type: String, enum: ['admin','customer'], default: 'customer' },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, required: false, select: false },
+    date: { type: Date, required: true },
+    image: { type: String, required: true },
+    role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
+
+    profile: {
+        phone: { type: String, default: "" },
+        altPhone: { type: String, default: "" },
+        dateOfBirth: { type: String, default: "" },
+        gender: { type: String, default: "" },
+        nidNumber: { type: String, default: "" },
+        occupation: { type: String, default: "" },
+        location: { type: String, default: "" },
+    }
 },
 
-{
-    timestamps: true,
-},
+
+    {
+        timestamps: true,
+    },
 
 )
 
-userSchema.pre('save',async function (this:any){
+userSchema.pre('save', async function (this: any) {
     const user = this
 
-    if(!user.isModified('password')){
+    if (!user.isModified('password')) {
         return;
     }
 
-    try{
+    try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
     }
 
     catch (error: any) {
-        throw new Error(error); 
+        throw new Error(error);
     }
 })
 
-export const User = model<IUser>('Users',userSchema)
+export const User = model<IUser>('Users', userSchema)

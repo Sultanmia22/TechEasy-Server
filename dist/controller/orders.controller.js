@@ -30,18 +30,20 @@ const createCheckoutSession = (req, res) => __awaiter(void 0, void 0, void 0, fu
                     InItem.quantity === dbItem.quantity));
             });
         }
+        const delivaryCharge = shippingInfo.district === "dhaka-city" ? 80 : 120;
         if (!orderToProcess) {
             const newOrderData = {
                 orderDate: new Date(),
                 shippingInfo,
                 items,
                 totalPrice,
+                deliveryCharge: delivaryCharge,
                 paymentStatus: "pending",
+                orderStatus: 'confirmed'
             };
             const updatedDoc = yield order_mode_1.CustomerOrder.findOneAndUpdate({ email: customerEmail }, { $push: { orders: newOrderData } }, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
             orderToProcess = updatedDoc.orders[updatedDoc.orders.length - 1];
         }
-        const delivaryCharge = shippingInfo.district === "dhaka-city" ? 80 : 120;
         const session = yield stripe.checkout.sessions.create({
             line_items: [
                 ...((orderToProcess === null || orderToProcess === void 0 ? void 0 : orderToProcess.items) || []).map((item) => ({
@@ -84,7 +86,7 @@ const createCheckoutSession = (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.status(500).json({ message: error.message });
     }
 });
-const confirmOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const paidOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { orderId, email } = req.query;
         if (!orderId && !email) {
@@ -106,14 +108,21 @@ const confirmOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 yield order_mode_1.CustomerOrder.updateOne({
                     email: email,
                     "orders._id": orderId,
-                }, { $set: { "orders.$.paymentStatus": "paid" } });
+                }, {
+                    $set: { "orders.$.paymentStatus": "paid" },
+                    $addToSet: {
+                        "orders.$.orderStatus": "paid"
+                    }
+                });
                 const productIdsString = session.metadata.productId;
                 if (productIdsString) {
                     const productIdsArray = productIdsString.split(",");
                     yield cart_model_1.default.updateMany({
                         userEmail: email,
                         "items.productId": { $in: productIdsArray }
-                    }, { $set: { orderStatus: "success" } });
+                    }, {
+                        $set: { orderStatus: "success" },
+                    });
                 }
             }
             orderData.paymentStatus = "paid";
@@ -125,8 +134,30 @@ const confirmOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         return res.status(500).json({ message: error.message });
     }
 });
+const getSingleOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { customerEmail, orderId } = req.query;
+        if (!customerEmail || !orderId) {
+            res.status(400).json({
+                success: false,
+                message: 'Order ID and Email are required'
+            });
+            return;
+        }
+        const customerAllOrder = yield order_mode_1.CustomerOrder.findOne({ email: customerEmail });
+        const singleOrder = customerAllOrder === null || customerAllOrder === void 0 ? void 0 : customerAllOrder.orders.find(order => order._id.toString() === orderId);
+        res.status(200).json({
+            success: true,
+            data: singleOrder || {}
+        });
+    }
+    catch (er) {
+        console.log(er);
+    }
+});
 exports.orderController = {
     createCheckoutSession,
-    confirmOrder,
+    paidOrder,
+    getSingleOrder
 };
 //# sourceMappingURL=orders.controller.js.map

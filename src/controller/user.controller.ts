@@ -1,6 +1,7 @@
 import { User } from "../models/user.model";
 import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
+import type { AuthRequest } from "../middleware/authMiddleware";
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -135,10 +136,64 @@ const socialLogin = async (req: Request, res: Response) => {
     }
 };
 
+const savePersonalInfo = async (req: AuthRequest, res: Response) => {
+    try{
+
+        const email = req?.user?.email;
+
+        const profileData = req.body;
+
+        if (!email) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: No email found in token"
+            });
+        }
+
+        const result = await User.findOneAndUpdate(
+            {email:email},
+
+            {
+                $set:{
+                    personalInfo : profileData
+                }
+            },
+
+            { 
+                new: true,           
+                runValidators: true 
+            }
+        )
+
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Saved Personal Information successfully!",
+            data: result
+        });
+
+    }
+    catch(er:any){ 
+        console.log(er)
+
+        res.status(500).json({
+            success: false,
+            message: er.message || "Internal Server Error"
+        });
+    }
+}
+
 export const userController = {
     register,
     login,
-    socialLogin
+    socialLogin,
+    savePersonalInfo
 }
 
 

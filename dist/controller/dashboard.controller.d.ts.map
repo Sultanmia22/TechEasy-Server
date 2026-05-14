@@ -1,0 +1,1 @@
+{"version":3,"file":"dashboard.controller.d.ts","sourceRoot":"","sources":["../../src/controller/dashboard.controller.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAGjD,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,8BAA8B,CAAC;AAkIhE,eAAO,MAAM,mBAAmB;iCAhIU,WAAW,OAAO,QAAQ;uBA4FpC,OAAO,OAAO,QAAQ;CAuCrD,CAAA"}

@@ -87,6 +87,7 @@ const getCartByEmail = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 data: []
             });
         }
+        console.log(cart);
         res.status(200).json({
             success: true,
             data: {

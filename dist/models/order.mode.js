@@ -15,7 +15,7 @@ const ShippingInfoSchema = new mongoose_1.Schema({
 }, { _id: false });
 // ২. Order Item Schema
 const OrderItemSchema = new mongoose_1.Schema({
-    productId: String, // আপনার ইন্টারফেসে এটি ছিল, তাই যোগ করলাম
+    productId: String,
     name: String,
     price: Number,
     quantity: Number,
@@ -30,10 +30,16 @@ const CustomerOrderSchema = new mongoose_1.Schema({
             shippingInfo: { type: ShippingInfoSchema, required: true },
             items: { type: [OrderItemSchema], required: true },
             totalPrice: { type: Number, required: true },
+            deliveryCharge: { type: Number, required: true },
             paymentStatus: {
                 type: String,
                 enum: ["pending", "paid", "failed"],
                 default: "pending",
+            },
+            orderStatus: {
+                type: [String],
+                enum: ['confirmed', 'paid', 'pending', 'shiped', 'delivered'],
+                default: ['confirmed']
             },
             stripeSessionId: String,
         },

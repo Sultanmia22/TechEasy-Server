@@ -8,6 +8,8 @@ const user_route_1 = require("./user.route");
 const products_route_1 = require("./products.route");
 const cart_route_1 = require("./cart.route");
 const order_route_1 = require("./order.route");
+const wishlist_route_1 = require("./wishlist.route");
+const dashboard_route_1 = require("./dashboard.route");
 const router = express_1.default.Router();
 const moduleRoute = [
     {
@@ -26,6 +28,14 @@ const moduleRoute = [
         path: '/order',
         route: order_route_1.orderRoute,
     },
+    {
+        path: '/wishlist',
+        route: wishlist_route_1.wishroute
+    },
+    {
+        path: '/dashboard',
+        route: dashboard_route_1.dashboardRoute
+    }
 ];
 moduleRoute.forEach((route) => router.use(route.path, route.route));
 exports.default = router;

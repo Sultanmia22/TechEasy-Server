@@ -5,6 +5,15 @@ export interface IUser {
     password: string,
     date: Date,
     image?: string,
-    role: 'admin' | 'customer'
+    role: 'admin' | 'customer',
+    profile?: {
+        phone?: string;
+        altPhone?: string;
+        dateOfBirth?: string;
+        gender?: string;
+        nidNumber?: string;
+        occupation?: string;
+        location?: string;
+    };
 }
 
