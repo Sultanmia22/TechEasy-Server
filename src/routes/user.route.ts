@@ -9,5 +9,6 @@ router.post('/',userController.register);
 router.post('/login',userController.login);
 router.post('/socialLogin',userController.socialLogin)
 router.patch('/savedPersonalInfo',verifyToken,userController.savePersonalInfo)
+router.get('/getPersonalInfo',userController.getPersonalInfo)
 
 export const userRoute = router

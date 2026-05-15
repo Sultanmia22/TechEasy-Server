@@ -189,11 +189,58 @@ const savePersonalInfo = async (req: AuthRequest, res: Response) => {
     }
 }
 
+const getPersonalInfo = async (req: Request, res: Response) => {
+    try {
+        const { customerEmail } = req.query;
+
+        if (!customerEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Customer email is required in query parameters."
+            });
+        }
+
+        const user = await User.findOne({ email: customerEmail }).select('name email profile -_id');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!"
+            });
+        }
+
+        const flatData = {
+            fullName: user.name, 
+            email: user.email,
+            phone: user.profile?.phone || "",
+            altPhone: user.profile?.altPhone || "",
+            dateOfBirth: user.profile?.dateOfBirth || "",
+            gender: user.profile?.gender || "",
+            occupation: user.profile?.occupation || "",
+            nidNumber: user.profile?.nidNumber || "",
+            location: user.profile?.location || ""
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Personal information fetched successfully!",
+            data: flatData
+        });
+
+    } catch (er: any) {
+        console.error("Error in getPersonalInfo:", er);
+        return res.status(500).json({
+            success: false,
+            message: er.message || "Internal server error"
+        });
+    }
+};
 export const userController = {
     register,
     login,
     socialLogin,
-    savePersonalInfo
+    savePersonalInfo,
+    getPersonalInfo
 }
 
 
