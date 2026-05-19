@@ -12,5 +12,6 @@ router.patch('/savedPersonalInfo',verifyToken,userController.savePersonalInfo)
 router.get('/getPersonalInfo',verifyToken,userController.getPersonalInfo)
 router.patch('/saveAddress',verifyToken,userController.saveAddress)
 router.get('/getAddress',verifyToken,userController.getAddress)
+router.delete('/deleteAddress',userController.deleteAddress)
 
 export const userRoute = router

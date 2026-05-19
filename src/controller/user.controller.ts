@@ -360,6 +360,68 @@ const getAddress = async (req: AuthRequest, res: Response) => {
     }
 };
 
+const deleteAddress = async (req: Request, res: Response) => {
+    try{
+        const {customerEmail,type} = req.query;
+
+        if (!customerEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Customer email is required in query parameters."
+            });
+        }
+
+        if(!type){
+            return res.status(400).json({
+                success: false,
+                message: "Address Type is required in query parameters."
+            });
+        }
+
+        const existingUser = await User.findOne({email:customerEmail})
+
+        if (!existingUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found with this email."
+            });
+        }
+
+        const hasAddressType = existingUser.address?.some(add => add.type === type)
+
+        if (!hasAddressType) {
+            return res.status(404).json({
+                success: false,
+                message: `No address found with type '${type}' for this user.`
+            });
+        }
+
+        const result = await User.findOneAndUpdate(
+            { email: customerEmail },
+            {
+                $pull: {
+                    address: { type: type }
+                }
+            },
+            { new: true }
+        )
+
+        res.status(200).json({
+            success: true,
+            message: "Address deleted successfully.",
+            data: result
+        });
+
+    }
+    catch(er:any){
+        console.log(er)
+        return res.status(500).json({
+            success: false,
+            message: er.message || "Internal server error"
+        });
+    }
+}
+
 export const userController = {
     register,
     login,
@@ -367,7 +429,8 @@ export const userController = {
     savePersonalInfo,
     getPersonalInfo,
     saveAddress,
-    getAddress
+    getAddress,
+    deleteAddress
 }
 
 
