@@ -9,7 +9,7 @@ const userSchema = new Schema<IUser>({
     image: { type: String, required: true },
     role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
 
-    profile: {
+    personalInfo: {
         phone: { type: String, default: "" },
         altPhone: { type: String, default: "" },
         dateOfBirth: { type: String, default: "" },
@@ -17,7 +17,20 @@ const userSchema = new Schema<IUser>({
         nidNumber: { type: String, default: "" },
         occupation: { type: String, default: "" },
         location: { type: String, default: "" },
+    },
+
+    address: [
+        {
+        id: { type: String, default: "" },
+        type: { type: String, default: "Home" },
+        name: { type: String, default: "" },
+        address: { type: String, default: "" },
+        city: { type: String, default: "" },
+        country: { type: String, default: "Bangladesh" },
+        phone: { type: String, default: "" },
+        isDefault: { type: Boolean, default: false }
     }
+    ]
 },
 
 

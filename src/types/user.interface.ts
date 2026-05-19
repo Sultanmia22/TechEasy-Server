@@ -6,7 +6,7 @@ export interface IUser {
     date: Date,
     image?: string,
     role: 'admin' | 'customer',
-    profile?: {
+    personalInfo?: {
         phone?: string;
         altPhone?: string;
         dateOfBirth?: string;
@@ -15,5 +15,17 @@ export interface IUser {
         occupation?: string;
         location?: string;
     };
+
+    address?: {
+        id?: string;
+        type: 'Home' | 'Office'
+        name: string;
+        address: string;
+        city: string;
+        country: string;
+        phone: string;
+        isDefault: boolean;
+    }[];
 }
+
 

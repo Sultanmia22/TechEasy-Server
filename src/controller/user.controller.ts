@@ -73,11 +73,11 @@ const login = async (req: Request, res: Response) => {
             });
         }
 
-         const accessToken = jwt.sign(
-        { id: user._id, role: user.role, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
-    );
+        const accessToken = jwt.sign(
+            { id: user._id, role: user.role, email: user.email },
+            process.env.JWT_SECRET!,
+            { expiresIn: '7d' }
+        );
 
         res.status(200).json({
             success: true,
@@ -123,25 +123,28 @@ const socialLogin = async (req: Request, res: Response) => {
             success: true,
             data: {
                 user,
-                accessToken 
+                accessToken
             }
         });
 
     } catch (er: any) {
         console.log("Error in Social Login:", er.message);
         res.status(500).json({
-            success: false, 
+            success: false,
             message: er.message || 'Something went wrong during social login'
         });
     }
 };
 
 const savePersonalInfo = async (req: AuthRequest, res: Response) => {
-    try{
+    try {
 
         const email = req?.user?.email;
 
+        console.log('email', email)
+
         const profileData = req.body;
+
 
         if (!email) {
             return res.status(401).json({
@@ -151,17 +154,17 @@ const savePersonalInfo = async (req: AuthRequest, res: Response) => {
         }
 
         const result = await User.findOneAndUpdate(
-            {email:email},
+            { email: email },
 
             {
-                $set:{
-                    personalInfo : profileData
+                $set: {
+                    personalInfo: profileData
                 }
             },
 
-            { 
-                new: true,           
-                runValidators: true 
+            {
+                new: true,
+                runValidators: true
             }
         )
 
@@ -172,6 +175,8 @@ const savePersonalInfo = async (req: AuthRequest, res: Response) => {
             });
         }
 
+        // console.log('data',result)
+
         res.status(200).json({
             success: true,
             message: "Saved Personal Information successfully!",
@@ -179,7 +184,7 @@ const savePersonalInfo = async (req: AuthRequest, res: Response) => {
         });
 
     }
-    catch(er:any){ 
+    catch (er: any) {
         console.log(er)
 
         res.status(500).json({
@@ -189,7 +194,7 @@ const savePersonalInfo = async (req: AuthRequest, res: Response) => {
     }
 }
 
-const getPersonalInfo = async (req: Request, res: Response) => {
+const getPersonalInfo = async (req: AuthRequest, res: Response) => {
     try {
         const { customerEmail } = req.query;
 
@@ -200,7 +205,7 @@ const getPersonalInfo = async (req: Request, res: Response) => {
             });
         }
 
-        const user = await User.findOne({ email: customerEmail }).select('name email profile -_id');
+        const user = await User.findOne({ email: customerEmail }).select('name email personalInfo -_id');
 
         if (!user) {
             return res.status(404).json({
@@ -209,22 +214,24 @@ const getPersonalInfo = async (req: Request, res: Response) => {
             });
         }
 
-        const flatData = {
-            fullName: user.name, 
+        const personalInfo = {
+            fullName: user.name,
             email: user.email,
-            phone: user.profile?.phone || "",
-            altPhone: user.profile?.altPhone || "",
-            dateOfBirth: user.profile?.dateOfBirth || "",
-            gender: user.profile?.gender || "",
-            occupation: user.profile?.occupation || "",
-            nidNumber: user.profile?.nidNumber || "",
-            location: user.profile?.location || ""
+            phone: user.personalInfo?.phone || "",
+            altPhone: user.personalInfo?.altPhone || "",
+            dateOfBirth: user.personalInfo?.dateOfBirth || "",
+            gender: user.personalInfo?.gender || "",
+            occupation: user.personalInfo?.occupation || "",
+            nidNumber: user.personalInfo?.nidNumber || "",
+            location: user.personalInfo?.location || ""
         };
+
+        // console.log(personalInfo)
 
         return res.status(200).json({
             success: true,
             message: "Personal information fetched successfully!",
-            data: flatData
+            data: personalInfo
         });
 
     } catch (er: any) {
@@ -235,12 +242,132 @@ const getPersonalInfo = async (req: Request, res: Response) => {
         });
     }
 };
+
+const saveAddress = async (req: AuthRequest, res: Response) => {
+    try {
+        const customerEmail = req.user?.email;
+
+        const addressData = req.body
+
+        if (!customerEmail) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: No email found in token"
+            });
+        }
+
+        if(!addressData.type || !['Home', 'Office'].includes(addressData.type)){
+            return res.status(400).json({
+                success: false,
+                message: "Invalid address type. Must be 'Home' or 'Office'."
+            });
+        };
+
+        const existingAddress = await User.findOne({
+            email: customerEmail,
+            "address.type": addressData.type
+        })
+
+        let result;
+
+        if(existingAddress){
+            result = await User.findOneAndUpdate(
+                 { 
+                    email: customerEmail, 
+                    "address.type": addressData.type 
+                },
+
+                {
+                    $set: {
+                        "address.$": { ...addressData }
+                    }
+                },
+                { new: true, runValidators: true }
+            )
+        }else{
+            result = await User.findOneAndUpdate(
+                { email: customerEmail },
+                {
+                    $push: {
+                        address: addressData
+                    }
+                }
+            )
+        }
+
+
+         if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!",
+            });
+        }
+
+
+        res.status(200).json({
+            success: true,
+            message: "Saved Address successfully!",
+            data: result
+        });
+    }
+    catch (er: any) {
+        console.error("Error in getPersonalInfo:", er);
+        return res.status(500).json({
+            success: false,
+            message: er.message || "Internal server error"
+        });
+    }
+}
+
+const getAddress = async (req: AuthRequest, res: Response) => {
+    try {
+        const { customerEmail } = req.query;
+
+        if (!customerEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Customer email is required in query parameters."
+            });
+        }
+
+        const user = await User.findOne({ email: customerEmail }).select('name address -_id');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!"
+            });
+        }
+
+       const addressList = user.address || [];
+
+        console.log('Address Data',addressList)
+
+
+        res.status(200).json({
+            success: true,
+            message: "Personal information fetched successfully!",
+            data: addressList        
+        })
+
+
+    } catch (er: any) {
+        console.error("Error in getPersonalInfo:", er);
+        return res.status(500).json({
+            success: false,
+            message: er.message || "Internal server error"
+        });
+    }
+};
+
 export const userController = {
     register,
     login,
     socialLogin,
     savePersonalInfo,
-    getPersonalInfo
+    getPersonalInfo,
+    saveAddress,
+    getAddress
 }
 
 
