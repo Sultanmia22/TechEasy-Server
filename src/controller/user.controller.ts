@@ -2,6 +2,7 @@ import { User } from "../models/user.model";
 import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import bcrypt from 'bcrypt';
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -64,7 +65,7 @@ const login = async (req: Request, res: Response) => {
             });
         }
 
-        const isPasswordMatched = await bycrypt.compare(password, user.password)
+        const isPasswordMatched = await bcrypt.compare(password, user.password)
 
         if (!isPasswordMatched) {
             return res.status(401).json({
@@ -341,7 +342,7 @@ const getAddress = async (req: AuthRequest, res: Response) => {
 
        const addressList = user.address || [];
 
-        console.log('Address Data',addressList)
+        // console.log('Address Data',addressList)
 
 
         res.status(200).json({
