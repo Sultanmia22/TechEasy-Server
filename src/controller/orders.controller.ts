@@ -42,7 +42,7 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
         totalPrice,
         deliveryCharge: delivaryCharge,
         paymentStatus: "pending",
-        orderStatus: 'confirmed'
+        orderStatus: 'pending'
       };
 
       const updatedDoc = await CustomerOrder.findOneAndUpdate(
@@ -141,9 +141,9 @@ const paidOrder = async (req: Request, res: Response) => {
 
           {
             $set: { "orders.$.paymentStatus": "paid" },
-            $addToSet: {
+           /*  $addToSet: {
               "orders.$.orderStatus": "paid"
-            }
+            } */
           },
         );
 
