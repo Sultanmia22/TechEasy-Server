@@ -141,9 +141,9 @@ const paidOrder = async (req: Request, res: Response) => {
 
           {
             $set: { "orders.$.paymentStatus": "paid" },
-           /*  $addToSet: {
-              "orders.$.orderStatus": "paid"
-            } */
+            /*  $addToSet: {
+               "orders.$.orderStatus": "paid"
+             } */
           },
         );
 
@@ -199,8 +199,50 @@ const getSingleOrder = async (req: AuthRequest, res: Response) => {
   }
 };
 
+const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { orderId, deliveryStatus, email } = req.body;
+
+    const role = req.user?.role;
+
+    if (!orderId || !deliveryStatus || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order ID, Delivery Status and Email are required'
+      })
+    }
+
+    if (role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to update delivery status'
+      })
+    }
+
+    const updatedOrder = await CustomerOrder.findOneAndUpdate(
+
+      { email: email as string, "orders._id": orderId as string },
+
+      {
+        $set: {"orders.$.delivaryStatus":deliveryStatus}
+      },
+
+    {new: true, "orders.$":1}
+
+    )
+  }
+  catch (err: any) {
+    console.log(err)
+    res.status(500).json({
+      success: false,
+      message: err.message || 'Internal Server Error'
+    })
+  }
+}
+
 export const orderController = {
   createCheckoutSession,
   paidOrder,
-  getSingleOrder
+  getSingleOrder,
+  updateDeliveryStatus
 };

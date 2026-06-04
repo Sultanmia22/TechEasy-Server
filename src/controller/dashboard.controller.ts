@@ -49,12 +49,23 @@ const getDashboradSummyData = async (req: AuthRequest, res: Response) => {
                       },
                       {
                         $project: {
-                          productImage: { $arrayElemAt: ["$orders.items.image", 0] }, // Item er image
+                         orderId: "$orders._id",
                           customerName: { $arrayElemAt: ["$customerInfo.name", 0] },
-                          productName: { $arrayElemAt: ["$orders.items.name", 0] },
                           amount: "$orders.totalPrice",
-                          status: { $arrayElemAt: ["$orders.orderStatus", -1] }
-                        }
+                          status: { $arrayElemAt: ["$orders.delivaryStatus", -1] },
+                          date: "$orders.orderDate",
+                          products: {
+                              $map: {
+                                  input: "$orders.items",
+                                  as: "item",
+                                  in: {
+                                      name: "$$item.name",
+                                      quantity: "$$item.quantity",
+                                      image: "$$item.image"
+                                  }
+                              }
+                          }
+                      }
                       }
                     ],
                     "topProducts": [
