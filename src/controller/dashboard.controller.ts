@@ -87,8 +87,8 @@ const getDashboradSummyData = async (req: AuthRequest, res: Response) => {
                 }
               ]);
           
-              // 2. Recent Users (User collection theke)
-              const recentUsers = await User.find({})
+             
+              const recentUsers = await User.find({ role: 'customer' }) 
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .select("name image email createdAt");
