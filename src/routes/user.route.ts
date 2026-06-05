@@ -13,5 +13,6 @@ router.get('/getPersonalInfo',verifyToken,userController.getPersonalInfo)
 router.patch('/saveAddress',verifyToken,userController.saveAddress)
 router.get('/getAddress',verifyToken,userController.getAddress)
 router.delete('/deleteAddress',userController.deleteAddress)
+router.patch('/updateRole',userController.changleRoleByAdmin)
 
 export const userRoute = router

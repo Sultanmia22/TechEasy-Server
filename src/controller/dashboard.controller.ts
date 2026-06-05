@@ -31,8 +31,8 @@ const getDashboradSummyData = async (req: AuthRequest, res: Response) => {
                           _id: null,
                           totalOrders: { $sum: 1 },
                           totalSales: { $sum: "$orders.totalPrice" },
-                          totalPending: { $sum: { $cond: [{ $eq: [{ $arrayElemAt: ["$orders.orderStatus", -1] }, "pending"] }, 1, 0] } },
-                          totalDelivered: { $sum: { $cond: [{ $eq: [{ $arrayElemAt: ["$orders.orderStatus", -1] }, "delivered"] }, 1, 0] } }
+                          totalPending: { $sum: { $cond: [{ $eq: [{ $arrayElemAt: ["$orders.delivaryStatus", -1] }, "pending"] }, 1, 0] } },
+                          totalDelivered: { $sum: { $cond: [{ $eq: [{ $arrayElemAt: ["$orders.delivaryStatus", -1] }, "delivered"] }, 1, 0] } }
                         }
                       }
                     ],
@@ -44,13 +44,14 @@ const getDashboradSummyData = async (req: AuthRequest, res: Response) => {
                           from: "users",
                           localField: "email",
                           foreignField: "email",
-                          as: "customerInfo"
+                          as: "customerInfo" 
                         }
                       },
                       {
                         $project: {
                          orderId: "$orders._id",
                           customerName: { $arrayElemAt: ["$customerInfo.name", 0] },
+                          customerEmail: { $arrayElemAt: ["$customerInfo.email", 0] },
                           amount: "$orders.totalPrice",
                           status: { $arrayElemAt: ["$orders.delivaryStatus", -1] },
                           date: "$orders.orderDate",

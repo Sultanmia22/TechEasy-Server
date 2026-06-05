@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import bcrypt from 'bcrypt';
 
+
 const register = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
@@ -423,6 +424,48 @@ const deleteAddress = async (req: Request, res: Response) => {
     }
 }
 
+const changleRoleByAdmin = async (req:Request, res: Response) => {
+    try{
+        const role = 'admin' as string
+        const {email,newRole} = req.body;
+
+        if(role !== 'admin'){
+            return res.status(401).json({
+                succeess : false,
+                message : 'You are not authorized to update user role'
+            })
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            {email: email},
+            {
+                $set: {role: newRole}
+            },
+            {new: true}
+        )
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User role updated successfully',
+            data: updatedUser
+        });
+    }
+    catch(er:unknown){
+        console.error(er);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+}
+
 export const userController = {
     register,
     login,
@@ -431,7 +474,8 @@ export const userController = {
     getPersonalInfo,
     saveAddress,
     getAddress,
-    deleteAddress
+    deleteAddress,
+    changleRoleByAdmin
 }
 
 

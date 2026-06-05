@@ -203,6 +203,8 @@ const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { orderId, deliveryStatus, email } = req.body;
 
+    console.log('Payload',orderId,deliveryStatus,email)
+
     const role = req.user?.role;
 
     if (!orderId || !deliveryStatus || !email) {
@@ -230,7 +232,18 @@ const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
     {new: true, "orders.$":1}
 
     )
+
+    if(updatedOrder){
+      res.status(200).json({
+        success: true,
+        message: 'Delivery Status Updated!',
+        data: updatedOrder?.orders[0]?.delivaryStatus
+      })
+    }
+
+    // console.log('Updated Order',updatedOrder?.orders[0]?.delivaryStatus)
   }
+
   catch (err: any) {
     console.log(err)
     res.status(500).json({
