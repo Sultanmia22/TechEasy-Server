@@ -424,9 +424,10 @@ const deleteAddress = async (req: Request, res: Response) => {
     }
 }
 
-const changleRoleByAdmin = async (req:Request, res: Response) => {
+const changleRoleByAdmin = async (req:AuthRequest, res: Response) => {
     try{
-        const role = 'admin' as string
+        const {role} = req.user
+
         const {email,newRole} = req.body;
 
         if(role !== 'admin'){
@@ -445,7 +446,7 @@ const changleRoleByAdmin = async (req:Request, res: Response) => {
         )
 
         if (!updatedUser) {
-            return res.status(404).json({
+            return res.status(401).json({
                 success: false,
                 message: 'User not found'
             });
@@ -466,6 +467,57 @@ const changleRoleByAdmin = async (req:Request, res: Response) => {
     }
 }
 
+const bannedUser = async (req: AuthRequest, res: Response) => {
+    try{
+        const {role} = req.user
+
+        const {email,statusVal} = req.body;
+
+        if(role !== 'admin'){
+            return res.status(403).json({
+                success: false
+            })
+        }
+
+        const updateUser = await User.findOneAndUpdate(
+            {email: email},
+            {
+                $set: {status: statusVal}
+            },
+            {new: true}
+        )
+
+        if(!updateUser){
+            return res.status(404).json({
+                success: false,
+                message: 'User Not Found'
+            })
+            return
+        }
+
+        res.status(200).json({
+            success : true,
+            message: `${updateUser.status} has Successfully!`,
+            data: updateUser?.status
+        })
+    }
+    catch(er:unknown){
+        if (er instanceof Error) {
+            console.error("Error occurred:", er.message);
+            return res.status(500).json({ 
+                success: false, 
+                message: er.message 
+            });
+        } 
+        
+        console.error("Unknown error:", er);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'An unexpected internal server error occurred' 
+        });
+    }
+}
+
 export const userController = {
     register,
     login,
@@ -475,7 +527,8 @@ export const userController = {
     saveAddress,
     getAddress,
     deleteAddress,
-    changleRoleByAdmin
+    changleRoleByAdmin,
+    bannedUser
 }
 
 

@@ -26,6 +26,8 @@ export interface IUser {
         phone: string;
         isDefault: boolean;
     }[];
+
+    status: 'active' | 'banned';
 }
 
 

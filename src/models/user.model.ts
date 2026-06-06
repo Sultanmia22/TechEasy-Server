@@ -21,16 +21,22 @@ const userSchema = new Schema<IUser>({
 
     address: [
         {
-        id: { type: String, default: "" },
-        type: { type: String, default: "Home" },
-        name: { type: String, default: "" },
-        address: { type: String, default: "" },
-        city: { type: String, default: "" },
-        country: { type: String, default: "Bangladesh" },
-        phone: { type: String, default: "" },
-        isDefault: { type: Boolean, default: false }
+            id: { type: String, default: "" },
+            type: { type: String, default: "Home" },
+            name: { type: String, default: "" },
+            address: { type: String, default: "" },
+            city: { type: String, default: "" },
+            country: { type: String, default: "Bangladesh" },
+            phone: { type: String, default: "" },
+            isDefault: { type: Boolean, default: false }
+        }
+    ],
+
+    status: {
+        type: String,
+        enum: ['active', 'banned'],
+        default: 'active'
     }
-    ]
 },
 
 

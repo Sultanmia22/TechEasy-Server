@@ -91,7 +91,7 @@ const getDashboradSummyData = async (req: AuthRequest, res: Response) => {
               const recentUsers = await User.find({ role: 'customer' }) 
                 .sort({ createdAt: -1 })
                 .limit(5)
-                .select("name image email createdAt");
+                .select("name image email createdAt status");
           
               // Result structure
               const data = orderData[0];
