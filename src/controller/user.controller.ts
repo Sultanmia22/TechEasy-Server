@@ -518,6 +518,57 @@ const bannedUser = async (req: AuthRequest, res: Response) => {
     }
 }
 
+const deleteUser = async (req: AuthRequest, res: Response) => {
+    try{
+        const {role} = req.user
+        const adminRole = role as string
+
+        const {email} = req.query;
+
+
+        const emailString = email as string
+
+        if(adminRole?.trim() !== process.env.ADMIN_ROLE?.trim()){
+            return res.status(403).json({
+                success: false,
+                message: 'You are unauthorized for this action'
+            })
+        }
+
+        const deleteUser = await User.deleteOne({email:emailString})
+
+        console.log('Delete Users',deleteUser)
+
+        if (deleteUser.deletedCount === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found!" 
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message : 'User Permanently Delete from this application'
+        }) 
+        
+    }
+    catch(er:unknown){
+         if (er instanceof Error) {
+            console.error("Error occurred:", er.message);
+            return res.status(500).json({ 
+                success: false, 
+                message: er.message 
+            });
+        } 
+        
+        console.error("Unknown error:", er);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'An unexpected internal server error occurred' 
+        });
+    }
+}
+
 export const userController = {
     register,
     login,
@@ -528,7 +579,8 @@ export const userController = {
     getAddress,
     deleteAddress,
     changleRoleByAdmin,
-    bannedUser
+    bannedUser,
+    deleteUser
 }
 
 

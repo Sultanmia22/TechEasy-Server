@@ -15,5 +15,6 @@ router.get('/getAddress',verifyToken,userController.getAddress)
 router.delete('/deleteAddress',userController.deleteAddress)
 router.patch('/updateRole',verifyToken,userController.changleRoleByAdmin)            
 router.patch('/bannedorActive',verifyToken,userController.bannedUser)            
+router.delete('/deleteUser',userController.deleteUser)            
 
 export const userRoute = router
