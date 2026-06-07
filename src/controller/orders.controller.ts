@@ -203,7 +203,7 @@ const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { orderId, deliveryStatus, email } = req.body;
 
-    console.log('Payload',orderId,deliveryStatus,email)
+    console.log('Payload', orderId, deliveryStatus, email)
 
     const role = req.user?.role;
 
@@ -226,14 +226,14 @@ const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
       { email: email as string, "orders._id": orderId as string },
 
       {
-        $set: {"orders.$.delivaryStatus":deliveryStatus}
+        $set: { "orders.$.delivaryStatus": deliveryStatus }
       },
 
-    {new: true, "orders.$":1}
+      { new: true, "orders.$": 1 }
 
     )
 
-    if(updatedOrder){
+    if (updatedOrder) {
       res.status(200).json({
         success: true,
         message: 'Delivery Status Updated!',
@@ -253,9 +253,87 @@ const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
   }
 }
 
+const allOrderByAdmin = async (req: AuthRequest, res: Response) => {
+  try {
+    const {role} = req.user;
+
+    if (role.trim() !== process.env.ADMIN_ROLE?.trim()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are unauthorized for this Request'
+      })
+    }
+
+    const allOrders = await CustomerOrder.aggregate([
+      { $unwind: "$orders" },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "email",
+          foreignField: "email",
+          as: "customerInfo"
+        }
+      },
+
+      {
+        $project: {
+          _id: 0,
+          orderId: "$orders._id",
+          customerName: { $arrayElemAt: ["$customerInfo.name", 0] },
+          customerEmail: "$email",
+          amount: "$orders.totalPrice",
+          status: { $arrayElemAt: ["$orders.delivaryStatus", -1] }, 
+          date: "$orders.orderDate",
+          products: {
+            $map: {
+              input: "$orders.items",
+              as: "item",
+              in: {
+                name: "$$item.name",
+                quantity: "$$item.quantity",
+                image: "$$item.image"
+              }
+            }
+          }
+        }
+      }
+    ])
+
+    if(!allOrders){
+      return res.status(404).json({
+        success : false,
+        message : 'No Order Available Now!'
+      })
+    }
+
+    res.status(200).json({
+      success : true,
+      message : `Total Product ${allOrders.length}`,
+      data: allOrders || []
+    })
+    
+  }
+  catch (er: unknown) {
+    if (er instanceof Error) {
+      console.error("Error occurred:", er.message);
+      return res.status(500).json({
+        success: false,
+        message: er.message
+      });
+    }
+    console.error("Unknown error:", er);
+    return res.status(500).json({
+      success: false,
+      message: 'An unexpected internal server error occurred'
+    });
+  }
+}
+
 export const orderController = {
   createCheckoutSession,
   paidOrder,
   getSingleOrder,
-  updateDeliveryStatus
+  updateDeliveryStatus,
+  allOrderByAdmin
 };
