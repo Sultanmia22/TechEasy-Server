@@ -4,9 +4,8 @@ import { Product } from "../types/products.interface";
 const productSchema = new Schema<Product>(
   {
     id: { 
-      type: Number, 
-      required: true, 
-      unique: true 
+      type: Number,
+      required: false  
     },
     name: { type: String, required: true },
     brand: { type: String, required: true },

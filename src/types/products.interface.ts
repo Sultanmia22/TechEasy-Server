@@ -6,7 +6,7 @@ export interface ProductSpecs {
 
 export interface Product {
   _id:Types.ObjectId;
-  id: number;
+  id?: number;
   name: string;
   brand: string;
   category: string;
