@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { Products } from "../models/products.model";
-
+import type { AuthRequest } from "../middleware/authMiddleware";
+import type { Product } from "../types/products.interface";
+import { FilterQuery } from 'mongoose';
 
 const popularProducts = async (req: Request, res: Response) => {
     try {
@@ -103,10 +105,11 @@ const getProductById = async (req: Request, res: Response) => {
     }
 }
 
-const addProduct = async (req: Request, res: Response) => {
+const addProduct = async (req: AuthRequest, res: Response) => {
     try {
-        const role = 'admin';
+        const {role} = req.user
         const productData = req.body;
+        console.log(productData)
 
         if (role !== process.env.ADMIN_ROLE) {
             return res.status(401).json({
@@ -147,11 +150,83 @@ const addProduct = async (req: Request, res: Response) => {
 }
 
 
+const productList = async (req: AuthRequest, res: Response) => {
+    try{
+        const {role} = req.user
+
+        const {search,category,sort,page=1,limit=5} = req.query;
+
+        if(role !== process.env.ADMIN_ROLE){
+            return res.status(401).json({
+                success: false,
+                message: 'You Are Unauthorized for the get product list'
+            })
+        }
+
+        const query: FilterQuery<Product> = {}
+
+        if(search){
+            query.name = {$regex: search, $options: 'i'}
+        };
+
+        if(category){
+            query.category = category;
+        };
+
+        // Sort Logic 
+        let sortOptions: Record<string, 1 | -1> = {};
+
+        if(sort === 'price_asc') sortOptions.price = 1;
+
+        else if (sort === 'price_desc') sortOptions.price = -1;
+
+        else sortOptions.createdAt = -1;
+
+        // Pagination Logic 
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const productList = await Products.find(query)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(Number(limit))
+
+        const total = await Products.countDocuments(query);
+
+        // console.log(productList)
+
+        res.status(200).json({
+            success: true,
+            message: 'Product Get Successfully',
+           data: {
+            total,
+            page: Number(page),
+            totalPages: Math.ceil(total / Number(limit)),
+            products: productList,
+           }
+        })
+    }
+    catch(er:unknown){
+        if(er instanceof Error){
+            console.log('Product List Error:',er.message)
+            return res.status(500).json({
+                success: false,
+                message: er.message || 'An unexpected internal server error occurred'
+            })
+        }
+
+        res.status(500).json({
+            success: false,
+            message:'An unexpected internal server error occurred'
+        })
+    }
+}
+
 
 export const productController = {
     popularProducts,
     getFilters,
     allProduct,
     getProductById,
-    addProduct
+    addProduct,
+    productList
 }
