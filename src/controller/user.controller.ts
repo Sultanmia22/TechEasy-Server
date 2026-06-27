@@ -569,6 +569,47 @@ const deleteUser = async (req: AuthRequest, res: Response) => {
     }
 }
 
+const allUsers = async (req: AuthRequest, res: Response) => {
+    try {
+        
+        const {role} = req.user
+
+        if(role !== process.env.ADMIN_ROLE){
+            return res.status(403).json({
+                success : false,
+                message: 'You are unauthorized for this action'
+            })
+        }
+
+        const users = await User.find()
+        .select('_id name email image status createdAt')
+        .lean()
+
+      res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      total: users.length,
+      data: users
+    });
+
+    }
+    catch (er: unknown) {
+        if (er instanceof Error) {
+            console.log(er.message)
+            res.status(500).json({
+                success: false,
+                message: er.message
+            })
+        }
+        else {
+            res.status(500).json({
+                success: false,
+                message: "An unknown error occurred",
+            })
+        }
+    }
+}
+
 export const userController = {
     register,
     login,
@@ -580,7 +621,8 @@ export const userController = {
     deleteAddress,
     changleRoleByAdmin,
     bannedUser,
-    deleteUser
+    deleteUser,
+    allUsers
 }
 
 

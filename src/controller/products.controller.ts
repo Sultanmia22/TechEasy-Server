@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Products } from "../models/products.model";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import type { Product } from "../types/products.interface";
-import { FilterQuery } from 'mongoose';
+
 
 const popularProducts = async (req: Request, res: Response) => {
     try {
