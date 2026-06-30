@@ -39,8 +39,14 @@ const moduleRoute = [
     {
         path : '/dashboard',
         route : dashboardRoute
+    },
+
+    {
+        path : '/profile',
+        route : productRoute
     }
+
 ];
 
 moduleRoute.forEach((route) => router.use(route.path, route.route));
-export default router;
+export default router;      
