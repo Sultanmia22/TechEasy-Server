@@ -6,6 +6,7 @@ import { cartRoute } from './cart.route';
 import { orderRoute } from './order.route';
 import { wishroute } from './wishlist.route';
 import { dashboardRoute } from './dashboard.route';
+import { profileRoute } from './profile.route';
 
 
 const router = express.Router();
@@ -43,7 +44,7 @@ const moduleRoute = [
 
     {
         path : '/profile',
-        route : productRoute
+        route : profileRoute,
     }
 
 ];
