@@ -7,12 +7,12 @@ import type { AuthRequest } from "../middleware/authMiddleware"
 const adminStats = async (req: AuthRequest, res: Response) => {
     try {
 
-        const {role} = req.user
+        const { role } = req.user
 
-        if(role !== 'admin'){
+        if (role !== 'admin') {
             return res.status(401).json({
-                success : false,
-                message : 'You are unauthirized for this action'
+                success: false,
+                message: 'You are unauthirized for this action'
             })
         }
 
@@ -38,10 +38,10 @@ const adminStats = async (req: AuthRequest, res: Response) => {
             success: true,
             message: "Dashboard summary fetched successfully",
             data: {
-                totalUsers,
-                totalProducts,
-                totalOrders,
-                totalRevenue
+                totalUsers: totalUsers ?? 0,
+                totalProducts: totalProducts ?? 0,
+                totalOrders: totalOrders ?? 0,
+                totalRevenue: totalRevenue ?? 0
             }
         });
     }

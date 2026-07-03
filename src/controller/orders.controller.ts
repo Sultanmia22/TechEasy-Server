@@ -4,7 +4,15 @@ import { CustomerOrder } from "../models/order.mode";
 import type { IOrderItem } from "../types/order.interface";
 import { Session } from "node:inspector";
 import Cart from "../models/cart.model";
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  throw new Error(
+    "Missing STRIPE_SECRET_KEY environment variable. Set STRIPE_SECRET_KEY in production environment."
+  );
+}
+
+const stripe = require("stripe")(stripeSecretKey);
 
 const createCheckoutSession = async (req: AuthRequest, res: Response) => {
   try {
