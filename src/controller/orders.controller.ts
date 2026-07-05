@@ -165,8 +165,7 @@ const paidOrder = async (req: Request, res: Response) => {
               "items.productId": { $in: productIdsArray }
             },
             {
-              $set: { orderStatus: "success" },
-
+               $set: { "items.$.orderStatus": "success" }, 
             },
           );
         }

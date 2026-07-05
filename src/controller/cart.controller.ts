@@ -23,9 +23,9 @@ const addToCart = async (req: Request, res: Response) => {
           {
             productId,
             quantity,
+            orderStatus: 'pending'
           },
         ],
-        orderStatus: 'pending'
       });
     }
     else{
@@ -63,7 +63,7 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
 
     const query = {
     userEmail: email as string,
-    orderStatus: "pending"         
+    // orderStatus: "pending"  <-- এটা এখান থেকে সরিয়ে দেওয়া হয়েছে         
     };
 
     if (!email) {
@@ -75,9 +75,12 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
 
     const cart = await Cart.find(query).populate('items.productId');
 
-    const subTotal = cart[0]?.items.reduce((sum,item) => {
+    // শুধুমাত্র pending আইটেমগুলো আলাদা করে নেওয়া হয়েছে
+    const pendingItems = cart[0]?.items.filter((item: any) => item.orderStatus === "pending") || [];
+
+    const subTotal = pendingItems.reduce((sum,item) => {
       const product = item.productId as { price: number };
-      return sum + product.price * item.quantity
+      return sum + (product?.price || 0) * item.quantity
     },0)
 
 
@@ -89,9 +92,11 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
         })
     }
 
-    console.log(cart)
+    // রেসপন্সে যাওয়ার আগে মূল cart এর items এ শুধু pending আইটেমগুলো বসিয়ে দেওয়া হচ্ছে
+    if(cart[0]) {
+      cart[0].items = pendingItems;
+    }
   
-
     res.status(200).json({
         success: true,
         data: {

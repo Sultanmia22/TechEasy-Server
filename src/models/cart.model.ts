@@ -19,11 +19,13 @@ const cartSchema = new Schema<ICart>({
                 min: 1,
                 default: 1
             },
+
+            orderStatus: {type: String, enum: ['pending', 'success', 'failed'],  required: true},
             _id: false 
         }
     ],
 
-    orderStatus: {type: String, enum: ['pending', 'success', 'failed'],  required: true}
+    
 },
 {
   timestamps: true
