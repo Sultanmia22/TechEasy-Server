@@ -1,38 +1,46 @@
 import { model, Schema } from "mongoose";
 import { ICart } from "../types/cart.interface";
 
-
-const cartSchema = new Schema<ICart>({
+const cartSchema = new Schema<ICart>(
+  {
     userEmail: { type: String, required: true },
-    
-    items: [
-        {
-            productId: {
-                type: Schema.Types.ObjectId,
-                ref: 'products',
-                required: true,
-            },
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: "products",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+      default: 1,
+    },
+    orderStatus: {
+      type: String,
+      enum: ["pending", "success", "failed"],
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-            quantity: {
-                type: Number,
-                required: true,
-                min: 1,
-                default: 1
-            },
+cartSchema.index({ userEmail: 1, productId: 1 }, { unique: true });
 
-            orderStatus: {type: String, enum: ['pending', 'success', 'failed'],  required: true},
-            _id: false 
-        }
-    ],
+const Cart = model<ICart>("Carts", cartSchema);
 
-    
-},
-{
-  timestamps: true
-}
-)
+void (async () => {
+  try {
+    await Cart.collection.dropIndex("userEmail_1");
+    console.log("Dropped legacy userEmail unique index from cart collection");
+  } catch (error: any) {
+    if (error?.codeName !== "IndexNotFound") {
+      console.error("Failed to drop legacy cart index:", error);
+    }
+  }
 
-
-const Cart = model<ICart>('Carts',cartSchema)
+  await Cart.syncIndexes();
+})();
 
 export default Cart

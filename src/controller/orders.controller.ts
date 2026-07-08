@@ -149,9 +149,6 @@ const paidOrder = async (req: Request, res: Response) => {
 
           {
             $set: { "orders.$.paymentStatus": "paid" },
-            /*  $addToSet: {
-               "orders.$.orderStatus": "paid"
-             } */
           },
         );
 
@@ -159,7 +156,7 @@ const paidOrder = async (req: Request, res: Response) => {
         if (productIdsString) {
           const productIdsArray = productIdsString.split(",");
 
-          await Cart.updateMany(
+          await Cart.updateOne(
             {
               userEmail: email as string,
               "items.productId": { $in: productIdsArray }
