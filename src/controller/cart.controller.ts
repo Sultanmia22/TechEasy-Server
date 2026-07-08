@@ -101,7 +101,7 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
   }
 };
 
-/* const removeCart = async (req: Request, res: Response) => {
+ const removeCart = async (req: Request, res: Response) => {
   try{
     const {id} = req.params as { id: string }
 
@@ -114,14 +114,10 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
 
     const objId = new Types.ObjectId(id);
 
-    const result = await Cart.updateOne(
-      {"items.productId":objId},
-      {
-        $pull: {items: {productId:objId}}
-      }
-    )
+    const result = await Cart.deleteOne(objId)
 
-    if (result.modifiedCount === 0) {
+
+    if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,
         message: "Product not found in cart",
@@ -139,9 +135,10 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
     console.log(er)
   }
 
-} */
+} 
 
 export const cartController = {
   addToCart,
-  getCartByEmail
+  getCartByEmail,
+  removeCart
 };
