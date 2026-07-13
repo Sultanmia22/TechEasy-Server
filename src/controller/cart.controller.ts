@@ -23,18 +23,16 @@ const addToCart = async (req: Request, res: Response) => {
       });
     }
 
-    const cart = await Cart.findOneAndUpdate(
-      { userEmail, productId },
-      {
-        $inc: { quantity: normalizedQuantity },
-        $setOnInsert: { orderStatus: "pending" },
-      },
-      {
-        new: true,
-        upsert: true,
-        setDefaultsOnInsert: true,
-      }
-    )
+    // সরাসরি নতুন ডকুমেন্ট তৈরি, কোনো ম্যাচিং বা আপডেট নয়
+    const newCartItem = await Cart.create({
+      userEmail,
+      productId,
+      quantity: normalizedQuantity,
+      orderStatus: "pending",
+    });
+
+    // তৈরি করা ডকুমেন্টটি populate করে রেসপন্সে পাঠানো
+    const cart = await Cart.findById(newCartItem._id)
       .populate({
         path: "productId",
         select: "_id name price image description category brand stock rating",
@@ -76,10 +74,14 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
       })
       .lean();
 
+      // console.log( 'Cart:', cart)
+
     const items = (cart || []).map((item) => ({
       ...item,
       productId: item.productId ?? null,
     }));
+
+    // console.log( 'Items:', items)
 
     const subTotal = items.reduce((sum, item) => {
       const price = typeof item.productId?.price === "number" ? item.productId.price : 0;
@@ -87,12 +89,14 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
       return sum + price * quantity;
     }, 0);
 
+    // console.log('SubTotal:',subTotal)
+
     return res.status(200).json({
       success: true,
       message: items.length > 0 ? "Cart fetched successfully" : "No Cart Found",
       data: {
         items,
-        subTotal,  // এটাও ঠিক করে দিয়েছি — 0: { subTotal } ভুল ছিলো
+        subTotal,  
       },
     });
   } catch (er) {
