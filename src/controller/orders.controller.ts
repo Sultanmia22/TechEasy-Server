@@ -4,6 +4,7 @@ import { CustomerOrder } from "../models/order.mode";
 import type { IOrderItem } from "../types/order.interface";
 import { Session } from "node:inspector";
 import Cart from "../models/cart.model";
+import mongoose from "mongoose";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
@@ -16,7 +17,13 @@ const stripe = require("stripe")(stripeSecretKey);
 
 const createCheckoutSession = async (req: AuthRequest, res: Response) => {
   try {
-    const { customerEmail, shippingInfo, items, totalPrice } = req.body;
+    const { customerEmail, shippingInfo, items, totalPrice, allCartId } = req.body;
+
+    console.log('All Cart Ids:', allCartId)
+
+    if (!customerEmail || !shippingInfo || !Array.isArray(items)) {
+      return res.status(400).json({ message: "Missing order information" });
+    }
 
     const userOrderDoc = await CustomerOrder.findOne({ email: customerEmail });
 
@@ -56,12 +63,15 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
       const updatedDoc = await CustomerOrder.findOneAndUpdate(
         { email: customerEmail },
         { $push: { orders: newOrderData } },
-        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
       );
 
-      orderToProcess = updatedDoc.orders[updatedDoc.orders.length - 1];
+      orderToProcess = updatedDoc?.orders?.[updatedDoc.orders.length - 1];
     }
 
+    if (!orderToProcess?._id) {
+      return res.status(500).json({ message: "Failed to create order record" });
+    }
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -92,20 +102,21 @@ const createCheckoutSession = async (req: AuthRequest, res: Response) => {
       mode: "payment",
       customer_email: customerEmail,
       metadata: {
-        mongoOrderId: orderToProcess?._id.toString(),
+        mongoOrderId: orderToProcess._id.toString(),
         email: customerEmail,
         productId: items.map((item: any) => item.productId).join(","),
+        cartIds: allCartId ? allCartId.join(",") : "",
       },
-      success_url: `${process.env.CLIENT_URL}/payment-success?order_id=${orderToProcess?._id}&email=${customerEmail}`,
+      success_url: `${process.env.CLIENT_URL}/payment-success?order_id=${orderToProcess._id.toString()}&email=${customerEmail}`,
       cancel_url: `${process.env.CLIENT_URL}/checkout`,
     });
 
     await CustomerOrder.updateOne(
-      { email: customerEmail, "orders._id": orderToProcess?._id },
+      { email: customerEmail, "orders._id": orderToProcess._id },
       { $set: { "orders.$.stripeSessionId": session.id } },
     );
 
-    res.status(200).json({ url: session.url });
+    res.status(200).json({ url: session.url, orderId: orderToProcess._id.toString() });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -133,12 +144,14 @@ const paidOrder = async (req: Request, res: Response) => {
         .json({ message: "Order not found in our database" });
     }
 
-    const orderData = userDoc?.orders[0];
+    const orderData = userDoc.orders[0];
 
     if (orderData?.paymentStatus === "pending" && orderData?.stripeSessionId) {
       const session = await stripe.checkout.sessions.retrieve(
         orderData.stripeSessionId,
       );
+
+      // console.log('Session:',session)
 
       if (session.payment_status === "paid" && session.status === "complete") {
         await CustomerOrder.updateOne(
@@ -152,25 +165,31 @@ const paidOrder = async (req: Request, res: Response) => {
           },
         );
 
-        const productIdsString = session.metadata.productId;
-        if (productIdsString) {
-          const productIdsArray = productIdsString.split(",");
+        const cartIdsString = session.metadata?.cartIds;
 
-          await Cart.updateOne(
+        if (cartIdsString) {
+          const cartItemIds = cartIdsString.split(",");
+
+          const cartItemObjectIds = cartItemIds.map(
+            (id: string) => new mongoose.Types.ObjectId(id)
+          );
+
+          // একসাথে সব কার্ট ডকুমেন্টের orderStatus success করে দেবে
+          await Cart.updateMany(
             {
-              userEmail: email as string,
-              "items.productId": { $in: productIdsArray }
+              _id: { $in: cartItemObjectIds },
+              userEmail: email as string
             },
             {
-               $set: { "items.$.orderStatus": "success" }, 
-            },
+              $set: { orderStatus: "success" }
+            }
           );
         }
       }
       orderData.paymentStatus = "paid";
     }
 
-    return res.status(200).json({ data: orderData });
+    return res.status(200).json({ success: true, data: orderData });
   } catch (error: any) {
     console.error("Order Confirmation Error:", error);
     return res.status(500).json({ message: error.message });
@@ -259,7 +278,7 @@ const updateDeliveryStatus = async (req: AuthRequest, res: Response) => {
 
 const allOrderByAdmin = async (req: AuthRequest, res: Response) => {
   try {
-    const {role} = req.user;
+    const { role } = req.user;
 
     if (role.trim() !== process.env.ADMIN_ROLE?.trim()) {
       return res.status(403).json({
@@ -287,7 +306,7 @@ const allOrderByAdmin = async (req: AuthRequest, res: Response) => {
           customerName: { $arrayElemAt: ["$customerInfo.name", 0] },
           customerEmail: "$email",
           amount: "$orders.totalPrice",
-          status: { $arrayElemAt: ["$orders.delivaryStatus", -1] }, 
+          status: { $arrayElemAt: ["$orders.delivaryStatus", -1] },
           date: "$orders.orderDate",
           products: {
             $map: {
@@ -304,19 +323,19 @@ const allOrderByAdmin = async (req: AuthRequest, res: Response) => {
       }
     ])
 
-    if(!allOrders){
+    if (!allOrders) {
       return res.status(404).json({
-        success : false,
-        message : 'No Order Available Now!'
+        success: false,
+        message: 'No Order Available Now!'
       })
     }
 
     res.status(200).json({
-      success : true,
-      message : `Total Product ${allOrders.length}`,
+      success: true,
+      message: `Total Product ${allOrders.length}`,
       data: allOrders || []
     })
-    
+
   }
   catch (er: unknown) {
     if (er instanceof Error) {
