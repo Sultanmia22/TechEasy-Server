@@ -134,6 +134,7 @@ const paidOrder = async (req: Request, res: Response) => {
       {
         email: email as string,
         "orders._id": orderId as string,
+
       },
       { "orders.$": 1 },
     );
@@ -178,7 +179,8 @@ const paidOrder = async (req: Request, res: Response) => {
           await Cart.updateMany(
             {
               _id: { $in: cartItemObjectIds },
-              userEmail: email as string
+              userEmail: email as string,
+              orderStatus: "pending"
             },
             {
               $set: { orderStatus: "success" }
