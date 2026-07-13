@@ -66,7 +66,10 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const cart = await Cart.find({ userEmail: email })
+    const cart = await Cart.find({ 
+      userEmail: email,
+      orderStatus: "pending"   
+    })
       .populate({
         path: "productId",
         select: "_id name price image description category brand stock rating",
@@ -89,7 +92,7 @@ const getCartByEmail = async (req: AuthRequest, res: Response) => {
       message: items.length > 0 ? "Cart fetched successfully" : "No Cart Found",
       data: {
         items,
-        0: { subTotal },
+        subTotal,  // এটাও ঠিক করে দিয়েছি — 0: { subTotal } ভুল ছিলো
       },
     });
   } catch (er) {
